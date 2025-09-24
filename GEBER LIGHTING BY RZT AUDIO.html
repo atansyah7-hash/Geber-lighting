@@ -1,0 +1,1269 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>My Code Project</title>
+    <style>
+/* --- Start Custom CSS --- */
+/* Welcome! Start your CSS here */
+/* This will be included in the <style> tags when you save the project */
+
+body {
+  font-family: sans-serif;
+  margin: 20px;
+  background-color: #333;
+  color: #eee;
+}
+
+h1 {
+  color: #00bcd4; /* Cyan */
+}
+
+#my-box {
+  background-color: #444;
+  border: 1px solid #555;
+  padding: 15px;
+  border-radius: 8px;
+  margin-top: 20px;
+}
+
+button {
+  background-color: #4CAF50; /* Green */
+  color: white;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+/* --- End Custom CSS --- */
+    </style>
+</head>
+<body>
+<!doctype html>
+
+<html lang="id">
+
+<head>
+
+<meta charset="utf-8"/>
+
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+
+<title>GrandMA2-like Beam Simulator (Canvas)</title>
+
+<style>
+
+  :root{
+
+    --bg:#061018; --panel:#0b1620; --accent:#00d4ff; --muted:#9fb0c4; --knob:#14202a;
+
+  }
+
+  html,body{height:100%;margin:0;background:linear-gradient(#000,#03111a);font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial;color:#dff6ff}
+
+  #app{display:grid;grid-template-columns:1fr 380px;gap:12px;height:100vh;padding:12px;box-sizing:border-box}
+
+  canvas{width:100%;height:100%;border-radius:10px;box-shadow:0 14px 40px rgba(0,0,0,0.6);background:linear-gradient(#000,#04131a)}
+
+  .console{background:linear-gradient(180deg,var(--panel),#07121a);border-radius:12px;padding:12px;box-sizing:border-box;border:1px solid rgba(255,255,255,0.03);overflow:auto}
+
+  h2{margin:4px 0 8px;color:var(--accent);text-align:center}
+
+  label{display:block;font-size:13px;color:var(--muted);margin-top:8px}
+
+  .group{display:flex;gap:8px;align-items:center}
+
+  .col{display:flex;flex-direction:column;gap:8px}
+
+  input[type=range], select, button, input[type=color]{width:100%;padding:6px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);background:#071a22;color:#eaf6ff}
+
+  .faders{display:flex;gap:8px;justify-content:space-between}
+
+  .fader{background:#08161b;padding:8px;border-radius:8px;flex:1;display:flex;flex-direction:column;align-items:center}
+
+  .fader input[type=range]{writing-mode: bt-lr; -webkit-appearance: slider-vertical; width:8px; height:140px;}
+
+  .btn-row{display:flex;gap:8px;margin-top:8px}
+
+  .btn{background:#0b2730;border:1px solid rgba(255,255,255,0.04);padding:8px;border-radius:6px;color:var(--muted);cursor:pointer}
+
+  .btn.primary{background:linear-gradient(90deg,#006b7a,#00d4ff);color:#001922}
+
+  .small{font-size:12px;color:var(--muted);margin-top:6px}
+
+  #joystick{width:160px;height:160px;border-radius:8px;background:linear-gradient(#05141a,#03202a);display:flex;align-items:center;justify-content:center;touch-action:none}
+
+  #stick{width:60px;height:60px;border-radius:50%;background:linear-gradient(#0dd5ff,#00a0b0);box-shadow:0 6px 16px rgba(0,0,0,0.6)}
+
+  .row{display:flex;gap:8px;align-items:center}
+
+  .kbd{background:#07121a;padding:6px 8px;border-radius:6px;border:1px solid rgba(255,255,255,0.03);color:var(--muted)}
+
+  footer{font-size:12px;color:var(--muted);text-align:center;margin-top:10px}
+
+  @media (max-width:980px){#app{grid-template-columns:1fr} .console{height:44vh}}
+
+</style>
+
+</head>
+
+<body>
+
+<div id="app">
+
+  <canvas id="stage" aria-label="Beam stage"></canvas>
+
+  <div class="console" role="region" aria-label="GrandMA-like console">
+
+    <h2>GrandMA2-like — Beam Console</h2>
+
+    <div class="group">
+
+      <div style="flex:1">
+
+        <label>Mode Gerakan</label>
+
+        <select id="mode">
+
+          <option value="pargoy">ParGoy (smooth)</option>
+
+          <option value="lr">Left-Right (cepat)</option>
+
+          <option value="ud">Up-Down (lebih lambat)</option>
+
+          <option value="circle">Circle</option>
+
+          <option value="wave">Wave</option>
+
+          <option value="random">Random</option>
+
+          <option value="manual">Manual</option>
+
+        </select>
+
+      </div>
+
+      <div style="width:110px">
+
+        <label>Jumlah Beam</label>
+
+        <select id="count"><option>4</option><option>6</option><option selected>8</option><option>10</option><option>12</option></select>
+
+      </div>
+
+    </div>
+
+    <div class="row" style="margin-top:8px">
+
+      <div style="flex:1">
+
+        <label>Speed Horizontal</label>
+
+        <input id="speedH" type="range" min="0.1" max="4" step="0.05" value="1">
+
+      </div>
+
+      <div style="width:80px">
+
+        <label class="small">x</label>
+
+        <input id="speedHval" readonly style="background:#071b21;text-align:center">
+
+      </div>
+
+    </div>
+
+    <div class="row">
+
+      <div style="flex:1">
+
+        <label>Speed Vertical</label>
+
+        <input id="speedV" type="range" min="0.1" max="6" step="0.05" value="1.4">
+
+      </div>
+
+      <div style="width:80px">
+
+        <label class="small">x</label>
+
+        <input id="speedVval" readonly style="background:#071b21;text-align:center">
+
+      </div>
+
+    </div>
+
+    <label>Beam Angle (°)</label>
+
+    <input id="angle" type="range" min="6" max="60" step="1" value="18">
+
+    <label>Range (px)</label>
+
+    <input id="range" type="range" min="300" max="2000" step="10" value="1200">
+
+    <label>Intensity (Dimmer)</label>
+
+    <div class="faders" style="margin-top:6px">
+
+      <div class="fader">
+
+        <div>Master</div>
+
+        <input id="masterFader" type="range" min="0" max="1" step="0.01" value="0.95" orient="vertical">
+
+        <div class="small" id="masterVal">95%</div>
+
+      </div>
+
+      <div class="fader">
+
+        <div>White (W)</div>
+
+        <input id="whiteFader" type="range" min="0" max="1" step="0.01" value="0.0" orient="vertical">
+
+        <div class="small" id="whiteVal">0%</div>
+
+      </div>
+
+      <div class="fader">
+
+        <div>Mode</div>
+
+        <select id="colMode" style="width:100%;margin-top:8px">
+
+          <option value="rgb">RGB</option>
+
+          <option value="rgbw">RGBW (use W)</option>
+
+        </select>
+
+      </div>
+
+    </div>
+
+    <label>Color Picker (RGB)</label>
+
+    <div class="row">
+
+      <input id="color" type="color" value="#ffffff">
+
+      <div style="width:120px">
+
+        <label class="small">Preset</label>
+
+        <select id="colorPreset"><option>#FFFFFF</option><option>#FF0000</option><option>#00FF00</option><option>#0000FF</option><option>#FFFF00</option><option>#FF00FF</option><option>#00FFFF</option></select>
+
+      </div>
+
+    </div>
+
+    <label>Prism / Split</label>
+
+    <div class="row">
+
+      <select id="prismMode"><option>Off</option><option value="3">3</option><option value="5">5</option><option value="7">7</option></select>
+
+      <button class="btn" id="prismRotate">Rotate</button>
+
+      <button class="btn" id="prismOn">Toggle Prism</button>
+
+    </div>
+
+    <label>Gobo</label>
+
+    <div class="row">
+
+      <select id="gobo"><option>None</option><option>Stripes</option><option>Grid</option><option>Dots</option><option>Split</option><option>Star</option><option>Spiral</option><option>Honeycomb</option></select>
+
+      <button class="btn" id="goboOn">Apply</button>
+
+    </div>
+
+    <label>Strobo</label>
+
+    <div class="row">
+
+      <select id="stroboMode"><option>Off</option><option>Blink</option><option>Alternate</option><option>Flow</option><option>Random</option></select>
+
+      <input id="stroboRate" type="range" min="0" max="20" value="8">
+
+    </div>
+
+    <div style="display:flex;gap:8px;margin-top:8px">
+
+      <button class="btn primary" id="playBtn">Play</button>
+
+      <button class="btn" id="pauseBtn">Pause</button>
+
+      <button class="btn" id="recordBtn">Record</button>
+
+    </div>
+
+    <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
+
+      <div id="joystick" aria-label="Pan Tilt Joystick">
+
+        <div id="stick"></div>
+
+      </div>
+
+      <div style="flex:1">
+
+        <label>Pan (manual)</label>
+
+        <input id="panManual" type="range" min="-180" max="180" value="0">
+
+        <label>Tilt (manual)</label>
+
+        <input id="tiltManual" type="range" min="-90" max="0" value="-55">
+
+      </div>
+
+    </div>
+
+    <div style="display:flex;gap:8px;margin-top:10px">
+
+      <button class="btn" id="savePreset">Save Preset</button>
+
+      <button class="btn" id="loadPreset">Load Preset</button>
+
+      <button class="btn" id="resetBtn">Reset</button>
+
+    </div>
+
+    <div class="small">Klik head pada stage untuk pilih, drag untuk atur pan/tilt. Keyboard: Space play/pause, 1..9 select head, arrows pan/tilt.</div>
+
+    <footer>Simulasi Canvas — bukan kontrol fisik.</footer>
+
+  </div>
+
+</div>
+
+<script>
+
+/* GrandMA2-like Beam Simulator (Canvas 2D)
+
+   - Volumetric cones approximated with layered gradients
+
+   - RGBW color mixing (RGB + W fader)
+
+   - Prism, Gobo, Strobe, Movement modes, joystick pan/tilt, record/save presets
+
+*/
+
+// Canvas init
+
+const canvas = document.getElementById('stage');
+
+const ctx = canvas.getContext('2d');
+
+function resize(){
+
+  const panelWidth = window.innerWidth > 980 ? 380 + 12 : 0;
+
+  canvas.width = Math.max(760, window.innerWidth - panelWidth - 36);
+
+  canvas.height = Math.max(560, window.innerHeight - 36);
+
+}
+
+window.addEventListener('resize', resize);
+
+resize();
+
+// UI refs
+
+const UI = {
+
+  mode: document.getElementById('mode'),
+
+  count: document.getElementById('count'),
+
+  speedH: document.getElementById('speedH'),
+
+  speedV: document.getElementById('speedV'),
+
+  speedHval: document.getElementById('speedHval'),
+
+  speedVval: document.getElementById('speedVval'),
+
+  angle: document.getElementById('angle'),
+
+  range: document.getElementById('range'),
+
+  masterFader: document.getElementById('masterFader'),
+
+  masterVal: document.getElementById('masterVal'),
+
+  whiteFader: document.getElementById('whiteFader'),
+
+  whiteVal: document.getElementById('whiteVal'),
+
+  colMode: document.getElementById('colMode'),
+
+  color: document.getElementById('color'),
+
+  colorPreset: document.getElementById('colorPreset'),
+
+  prismMode: document.getElementById('prismMode'),
+
+  prismOnBtn: document.getElementById('prismOn'),
+
+  prismRotateBtn: document.getElementById('prismRotate'),
+
+  gobo: document.getElementById('gobo'),
+
+  goboOn: document.getElementById('goboOn'),
+
+  stroboMode: document.getElementById('stroboMode'),
+
+  stroboRate: document.getElementById('stroboRate'),
+
+  playBtn: document.getElementById('playBtn'),
+
+  pauseBtn: document.getElementById('pauseBtn'),
+
+  recordBtn: document.getElementById('recordBtn'),
+
+  joystick: document.getElementById('joystick'),
+
+  stick: document.getElementById('stick'),
+
+  panManual: document.getElementById('panManual'),
+
+  tiltManual: document.getElementById('tiltManual'),
+
+  savePreset: document.getElementById('savePreset'),
+
+  loadPreset: document.getElementById('loadPreset'),
+
+  resetBtn: document.getElementById('resetBtn')
+
+};
+
+// state
+
+const state = {
+
+  running: true,
+
+  rainbow: false,
+
+  prismOn: false,
+
+  prismRotate: false,
+
+  heads: [],
+
+  time: 0,
+
+  stroboPhase: 0,
+
+  recording:false,
+
+  recordedFrames: []
+
+};
+
+// helpers color mixing RGBW
+
+function mixRGBW(hex, w, master=1){
+
+  // returns rgba string representing mix of hex RGB and white contribution
+
+  const r = parseInt(hex.slice(1,3),16);
+
+  const g = parseInt(hex.slice(3,5),16);
+
+  const b = parseInt(hex.slice(5,7),16);
+
+  // white adds equally
+
+  const rw = Math.round(r*(1-w) + 255*w);
+
+  const gw = Math.round(g*(1-w) + 255*w);
+
+  const bw = Math.round(b*(1-w) + 255*w);
+
+  return `rgba(${Math.round(rw*master)},${Math.round(gw*master)},${Math.round(bw*master)},`;
+
+}
+
+// init heads
+
+function initHeads(count){
+
+  state.heads = [];
+
+  const trussY = canvas.height * 0.14;
+
+  const margin = Math.min(140, canvas.width*0.08);
+
+  const usable = canvas.width - margin*2;
+
+  const spacing = count>1 ? usable/(count-1) : 0;
+
+  for(let i=0;i<count;i++){
+
+    const x = margin + i*spacing;
+
+    state.heads.push({
+
+      id:i, x, y:trussY,
+
+      pan: (i-(count-1)/2)*8, tilt:-60,
+
+      color: UI.color.value, white: parseFloat(UI.whiteFader.value),
+
+      intensity: parseFloat(UI.masterFader.value), angle: parseFloat(UI.angle.value), range: parseFloat(UI.range.value),
+
+      prismCount: parseInt(UI.prismMode.value),
+
+      gobo: 'None'
+
+    });
+
+  }
+
+}
+
+initHeads(parseInt(UI.count.value));
+
+// UI wiring
+
+UI.count.addEventListener('change', ()=> initHeads(parseInt(UI.count.value)));
+
+UI.speedH.addEventListener('input', ()=> UI.speedHval.value = UI.speedH.value);
+
+UI.speedV.addEventListener('input', ()=> UI.speedVval.value = UI.speedV.value);
+
+UI.speedHval.value = UI.speedH.value; UI.speedVval.value = UI.speedV.value;
+
+UI.masterFader.addEventListener('input', ()=> UI.masterVal.textContent = Math.round(UI.masterFader.value*100)+'%');
+
+UI.whiteFader.addEventListener('input', ()=> UI.whiteVal.textContent = Math.round(UI.whiteFader.value*100)+'%');
+
+UI.color.addEventListener('input', ()=> {
+
+  // update selected head or all
+
+  if(selectedHead >= 0) state.heads[selectedHead].color = UI.color.value;
+
+  else state.heads.forEach(h=>h.color = UI.color.value);
+
+});
+
+UI.colorPreset.addEventListener('change', ()=> { UI.color.value = UI.colorPreset.value; UI.color.dispatchEvent(new Event('input')); });
+
+UI.prismOnBtn.addEventListener('click', ()=> { state.prismOn = !state.prismOn; UI.prismOnBtn.textContent = state.prismOn ? 'Prism: ON' : 'Toggle Prism'; });
+
+UI.prismRotateBtn.addEventListener('click', ()=> { state.prismRotate = !state.prismRotate; UI.prismRotateBtn.textContent = state.prismRotate ? 'Rot: ON' : 'Rotate'; });
+
+UI.goboOn.addEventListener('click', ()=> { for(let h of state.heads) h.gobo = UI.gobo.value; });
+
+UI.playBtn.addEventListener('click', ()=> { state.running = true; });
+
+UI.pauseBtn.addEventListener('click', ()=> { state.running = false; });
+
+UI.recordBtn.addEventListener('click', ()=> {
+
+  state.recording = !state.recording;
+
+  UI.recordBtn.textContent = state.recording ? 'Stop' : 'Record';
+
+  if(state.recording) state.recordedFrames = [];
+
+});
+
+// joystick (pan/tilt) simple implement
+
+let stickPos = {x:0,y:0};
+
+let draggingStick = false;
+
+function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
+
+UI.joystick.addEventListener('pointerdown', (e)=>{
+
+  draggingStick = true; UI.stick.setPointerCapture(e.pointerId);
+
+});
+
+window.addEventListener('pointerup', ()=> { draggingStick = false; UI.stick.style.transform = 'translate(0px,0px)'; stickPos={x:0,y:0}; });
+
+UI.joystick.addEventListener('pointermove', (e)=>{
+
+  if(!draggingStick) return;
+
+  const rect = UI.joystick.getBoundingClientRect();
+
+  const cx = rect.left + rect.width/2;
+
+  const cy = rect.top + rect.height/2;
+
+  let dx = e.clientX - cx, dy = e.clientY - cy;
+
+  // limit radius
+
+  const r = Math.min(rect.width/2 - 20, Math.hypot(dx,dy));
+
+  const ang = Math.atan2(dy,dx);
+
+  dx = Math.cos(ang)*r; dy = Math.sin(ang)*r;
+
+  UI.stick.style.transform = `translate(${dx}px,${dy}px)`;
+
+  // map to pan/tilt
+
+  const panValue = clamp(Math.round((dx / (rect.width/2 - 20)) * 90), -180, 180);
+
+  const tiltValue = clamp(Math.round((dy / (rect.height/2 - 20)) * 60), -90, 0);
+
+  UI.panManual.value = panValue;
+
+  UI.tiltManual.value = tiltValue;
+
+  // apply to selected head or all
+
+  if(selectedHead >= 0){ state.heads[selectedHead].pan = panValue; state.heads[selectedHead].tilt = tiltValue; }
+
+  else state.heads.forEach(h=>{ h.pan = panValue; h.tilt = tiltValue; });
+
+});
+
+// manual sliders
+
+UI.panManual.addEventListener('input', ()=> {
+
+  const v = parseFloat(UI.panManual.value);
+
+  if(selectedHead >= 0) state.heads[selectedHead].pan = v; else state.heads.forEach(h=>h.pan=v);
+
+});
+
+UI.tiltManual.addEventListener('input', ()=> {
+
+  const v = parseFloat(UI.tiltManual.value);
+
+  if(selectedHead >= 0) state.heads[selectedHead].tilt = v; else state.heads.forEach(h=>h.tilt=v);
+
+});
+
+// presets save/load
+
+UI.savePreset.addEventListener('click', ()=> {
+
+  const preset = { config:{count:UI.count.value, mode:UI.mode.value, speedH:UI.speedH.value, speedV:UI.speedV.value, angle:UI.angle.value, range:UI.range.value, master:UI.masterFader.value, white:UI.whiteFader.value, prismMode:UI.prismMode.value, gobo:UI.gobo.value, strobo:UI.stroboMode.value, stroboRate:UI.stroboRate.value}, heads:state.heads };
+
+  const blob = new Blob([JSON.stringify(preset,null,2)],{type:'application/json'});
+
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'ma_preset.json'; a.click(); URL.revokeObjectURL(a.href);
+
+});
+
+UI.loadPreset.addEventListener('click', ()=> {
+
+  const inp = document.createElement('input'); inp.type='file'; inp.accept='.json';
+
+  inp.onchange = (e)=> {
+
+    const f = e.target.files[0]; if(!f) return;
+
+    const r = new FileReader(); r.onload = () => {
+
+      try{
+
+        const obj = JSON.parse(r.result);
+
+        if(obj.config){ UI.count.value = obj.config.count||UI.count.value; UI.mode.value = obj.config.mode||UI.mode.value; UI.speedH.value = obj.config.speedH||UI.speedH.value; UI.speedV.value = obj.config.speedV||UI.speedV.value; UI.angle.value = obj.config.angle||UI.angle.value; UI.range.value = obj.config.range||UI.range.value; UI.masterFader.value = obj.config.master||UI.masterFader.value; UI.whiteFader.value = obj.config.white||UI.whiteFader.value; UI.prismMode.value = obj.config.prismMode||UI.prismMode.value; UI.gobo.value = obj.config.gobo||UI.gobo.value; UI.stroboMode.value = obj.config.strobo||UI.stroboMode.value; UI.stroboRate.value = obj.config.stroboRate||UI.stroboRate.value; }
+
+        if(Array.isArray(obj.heads)){ initHeads(obj.heads.length); for(let i=0;i<obj.heads.length && i<state.heads.length;i++){ Object.assign(state.heads[i], obj.heads[i]); } }
+
+      }catch(err){ alert('Invalid preset'); }
+
+    }; r.readAsText(f);
+
+  };
+
+  inp.click();
+
+});
+
+UI.resetBtn.addEventListener('click', ()=> { initHeads(parseInt(UI.count.value)); });
+
+// picking heads
+
+let selectedHead = -1;
+
+let dragging = false, lastPos = null;
+
+canvas.addEventListener('pointerdown',(e)=>{
+
+  const r = canvas.getBoundingClientRect();
+
+  const px = e.clientX - r.left, py = e.clientY - r.top;
+
+  let nearest=-1, nd=1e9;
+
+  for(let h of state.heads){
+
+    const d = Math.hypot(px - h.x, py - h.y);
+
+    if(d<30 && d<nd){ nd=d; nearest=h.id; }
+
+  }
+
+  if(nearest>=0){ selectedHead = nearest; dragging = true; lastPos={x:px,y:py}; UI.color.value = state.heads[selectedHead].color; UI.panManual.value = state.heads[selectedHead].pan; UI.tiltManual.value = state.heads[selectedHead].tilt; }
+
+});
+
+canvas.addEventListener('pointermove',(e)=>{
+
+  if(!dragging || selectedHead<0) return;
+
+  const r = canvas.getBoundingClientRect();
+
+  const px = e.clientX - r.left, py = e.clientY - r.top;
+
+  const dx = px - lastPos.x, dy = py - lastPos.y;
+
+  lastPos={x:px,y:py};
+
+  const h = state.heads[selectedHead];
+
+  h.pan += dx*0.25;
+
+  h.tilt += dy*0.12;
+
+  h.tilt = Math.max(-90, Math.min(-20, h.tilt));
+
+  UI.panManual.value = h.pan;
+
+  UI.tiltManual.value = h.tilt;
+
+});
+
+window.addEventListener('pointerup', ()=> dragging=false);
+
+// keyboard shortcuts
+
+window.addEventListener('keydown',(e)=>{
+
+  if(e.code==='Space'){ state.running = !state.running; }
+
+  if(e.key>='1' && e.key<='9'){ const idx = parseInt(e.key)-1; if(state.heads[idx]) selectedHead=idx; }
+
+  if(selectedHead>=0){
+
+    const h = state.heads[selectedHead];
+
+    if(e.key==='ArrowLeft') h.pan -= 2;
+
+    if(e.key==='ArrowRight') h.pan += 2;
+
+    if(e.key==='ArrowUp') h.tilt -= 2;
+
+    if(e.key==='ArrowDown') h.tilt += 2;
+
+  }
+
+});
+
+// fog pool
+
+const fog = {pool:[], particles:[]};
+
+for(let i=0;i<250;i++) fog.pool.push({x:Math.random()*canvas.width, y:Math.random()*canvas.height*0.8, r:1+Math.random()*4, a:0.02+Math.random()*0.45});
+
+function spawnFog(){ if(fog.pool.length===0) return; const p = fog.pool.pop(); p.x = Math.random()*canvas.width; p.y = Math.random()*canvas.height*0.8; p.r = 1+Math.random()*4; p.a = 0.02+Math.random()*0.45; fog.particles.push(p); }
+
+function updateFog(){ for(let i=fog.particles.length-1;i>=0;i--){ const p=fog.particles[i]; p.x += (Math.random()-0.5)*0.4; p.y += 0.12; p.a *= 0.999; if(p.y>canvas.height||p.a<0.01) fog.pool.push(...fog.particles.splice(i,1)); } if(fog.particles.length<200 && Math.random()<0.7) spawnFog(); }
+
+for(let i=0;i<160;i++) spawnFog();
+
+// draw functions
+
+function drawTruss(){
+
+  const trY = canvas.height*0.14;
+
+  ctx.fillStyle = '#111217'; ctx.fillRect(0, trY-10, canvas.width, 14);
+
+  for(let h of state.heads){ ctx.fillStyle='#23282c'; ctx.fillRect(h.x-12,trY-26,24,12); ctx.strokeStyle='rgba(255,255,255,0.03)'; ctx.strokeRect(h.x-12,trY-26,24,12);}
+
+}
+
+function drawHeadsUI(){
+
+  for(let h of state.heads){
+
+    ctx.save();
+
+    ctx.beginPath(); ctx.arc(h.x,h.y,12,0,Math.PI*2); ctx.fillStyle = '#0b0e11'; ctx.fill();
+
+    ctx.beginPath(); ctx.arc(h.x,h.y,6,0,Math.PI*2); ctx.fillStyle = h.color; ctx.fill();
+
+    if(selectedHead===h.id){ ctx.strokeStyle='rgba(0,212,255,0.9)'; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(h.x,h.y,18,0,Math.PI*2); ctx.stroke(); }
+
+    ctx.restore();
+
+  }
+
+}
+
+// draw volumetric cone approx
+
+function drawBeam(h, now, visible=true){
+
+  if(!visible) return;
+
+  const baseX = h.x, baseY = h.y;
+
+  const angleRad = (h.angle||18)*Math.PI/180;
+
+  const tiltRad = (h.tilt||-60)*Math.PI/180;
+
+  const dirX = Math.sin((h.pan||0)*Math.PI/180) * Math.cos(tiltRad);
+
+  const dirY = Math.sin(tiltRad);
+
+  const tiltFactor = (90 + (h.tilt||-60))/90;
+
+  const len = (h.range||1200)*tiltFactor;
+
+  const layers = 24;
+
+  // color mixing RGBW
+
+  const master = parseFloat(UI.masterFader.value);
+
+  const w = parseFloat(UI.whiteFader.value);
+
+  const rgbaPrefix = mixRGBW(h.color||UI.color.value, w, master);
+
+  for(let L=layers;L>=1;L--){
+
+    const t = L/layers;
+
+    const layerLen = len*(0.35 + 0.65*t);
+
+    const spread = Math.tan(angleRad) * layerLen * (0.6 + 0.35*(1-t));
+
+    const x1 = baseX + dirX*layerLen - spread;
+
+    const y1 = baseY + dirY*layerLen;
+
+    const x2 = baseX + dirX*layerLen + spread;
+
+    const y2 = y1;
+
+    let col = h.color || UI.color.value;
+
+    if(UI.colMode.value === 'rgbw'){ /* handled by rgbaPrefix */ }
+
+    if(state.rainbow){ const hue = (state.time*40 + h.id*18 + L*2) % 360; col = `hsl(${hue},100%,70%)`; }
+
+    let alpha = (h.intensity||1) * (0.6 * t);
+
+    const grad = ctx.createLinearGradient(baseX, baseY, (x1+x2)/2, y1);
+
+    if(UI.colMode.value === 'rgbw'){
+
+      grad.addColorStop(0, rgbaPrefix + alpha + ')');
+
+      grad.addColorStop(0.6, rgbaPrefix + (alpha*0.06) + ')');
+
+    } else {
+
+      grad.addColorStop(0, rgbaStr(col, alpha));
+
+      grad.addColorStop(0.6, rgbaStr(col, alpha*0.06));
+
+    }
+
+    grad.addColorStop(1, 'rgba(0,0,0,0)');
+
+    ctx.beginPath(); ctx.moveTo(baseX,baseY); ctx.lineTo(x1,y1); ctx.lineTo(x2,y2); ctx.closePath();
+
+    ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = grad; ctx.fill(); ctx.globalCompositeOperation = 'source-over';
+
+  }
+
+  // gobo
+
+  if(h.gobo && h.gobo !== 'None'){
+
+    const cx = baseX + dirX*len*0.6; const cy = baseY + dirY*len*0.6;
+
+    ctx.save(); ctx.beginPath(); ctx.moveTo(baseX,baseY); ctx.lineTo(baseX + dirX*len - Math.tan(angleRad)*len, baseY + dirY*len); ctx.lineTo(baseX + dirX*len + Math.tan(angleRad)*len, baseY + dirY*len); ctx.closePath(); ctx.clip();
+
+    applyGoboPattern(cx, cy, Math.abs(Math.tan(angleRad)*len*0.6), h.gobo);
+
+    ctx.restore();
+
+  }
+
+  // prism
+
+  const pm = UI.prismMode.value;
+
+  const pcount = parseInt(pm) || 0;
+
+  if(state.prismOn && pcount>0){
+
+    for(let p=0;p<pcount;p++){
+
+      let offsetDeg = 0;
+
+      if(pm==='3' || pm==='5' || pm==='7'){ offsetDeg = (p - (pcount-1)/2) * (6 + (state.prismRotate ? Math.sin(state.time*1.2)*8 : 0)); }
+
+      const pPan = (h.pan||0) + offsetDeg;
+
+      const pTilt = h.tilt;
+
+      const pTiltRad = pTilt*Math.PI/180;
+
+      const pDirX = Math.sin(pPan*Math.PI/180)*Math.cos(pTiltRad);
+
+      const pDirY = Math.sin(pTiltRad);
+
+      const pLen = len*0.88; const pSpread = Math.tan(angleRad)*pLen*0.45;
+
+      const x1 = baseX + pDirX*pLen - pSpread; const y1 = baseY + pDirY*pLen;
+
+      const x2 = baseX + pDirX*pLen + pSpread; const y2 = y1;
+
+      const hue = state.rainbow ? ((state.time*30 + p*60)%360) : null;
+
+      const pcol = hue ? `hsl(${hue},100%,70%)` : h.color||UI.color.value;
+
+      const grad = ctx.createLinearGradient(baseX, baseY, (x1+x2)/2, y1);
+
+      if(UI.colMode.value==='rgbw'){
+
+        const pre = mixRGBW(pcol, parseFloat(UI.whiteFader.value), parseFloat(UI.masterFader.value));
+
+        grad.addColorStop(0, pre + (h.intensity||1)*0.6 + ')');
+
+        grad.addColorStop(1, 'rgba(0,0,0,0)');
+
+      } else {
+
+        grad.addColorStop(0, rgbaStr(pcol,(h.intensity||1)*0.6));
+
+        grad.addColorStop(1, 'rgba(0,0,0,0)');
+
+      }
+
+      ctx.beginPath(); ctx.moveTo(baseX,baseY); ctx.lineTo(x1,y1); ctx.lineTo(x2,y2); ctx.closePath();
+
+      ctx.globalCompositeOperation='lighter'; ctx.fillStyle=grad; ctx.fill(); ctx.globalCompositeOperation='source-over';
+
+    }
+
+  }
+
+  // floor spot
+
+  ctx.save();
+
+  const floorY = canvas.height*0.82;
+
+  const spotX = baseX + dirX*(len*0.95);
+
+  const spotY = floorY - 6;
+
+  const radius = 22 + (h.intensity||1)*16;
+
+  const g = ctx.createRadialGradient(spotX, spotY, 0, spotX, spotY, radius);
+
+  const spotCol = state.rainbow ? `hsl(${(state.time*30 + h.id*40) % 360},100%,70%)` : h.color||UI.color.value;
+
+  if(UI.colMode.value==='rgbw'){ const pre = mixRGBW(spotCol, parseFloat(UI.whiteFader.value), parseFloat(UI.masterFader.value)); g.addColorStop(0, pre + (h.intensity||1)*0.6 + ')'); }
+
+  else { g.addColorStop(0, rgbaStr(spotCol, (h.intensity||1)*0.6)); }
+
+  g.addColorStop(1, 'rgba(0,0,0,0)');
+
+  ctx.globalCompositeOperation='lighter'; ctx.fillStyle=g; ctx.fillRect(spotX-radius,spotY-radius,radius*2,radius*2); ctx.globalCompositeOperation='source-over';
+
+  ctx.restore();
+
+}
+
+// utility rgba from hex/hsl
+
+function rgbaStr(col, a){
+
+  if(typeof col === 'string' && col.startsWith('hsl')){ return hslToRgba(col,a); }
+
+  const r = parseInt(col.slice(1,3),16), g = parseInt(col.slice(3,5),16), b = parseInt(col.slice(5,7),16);
+
+  return `rgba(${r},${g},${b},${a})`;
+
+}
+
+function hslToRgba(hsl,a){
+
+  const m = hsl.match(/hsl\((\d+),\s*(\d+)%?,\s*(\d+)%?\)/i);
+
+  if(!m) return `rgba(255,255,255,${a})`;
+
+  const h = (+m[1])/360, s = (+m[2])/100, l = (+m[3])/100;
+
+  const rgb = hslToRgb(h,s,l);
+
+  return `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${a})`;
+
+}
+
+function hslToRgb(h,s,l){
+
+  let r,g,b;
+
+  if(s==0){ r=g=b=Math.round(l*255); }
+
+  else {
+
+    const hue2rgb=(p,q,t)=>{ if(t<0)t+=1; if(t>1)t-=1; if(t<1/6) return p+(q-p)*6*t; if(t<1/2) return q; if(t<2/3) return p+(q-p)*(2/3-t)*6; return p; };
+
+    const q = l<0.5? l*(1+s) : l+s-l*s;
+
+    const p = 2*l - q;
+
+    r = Math.round(hue2rgb(p,q,h+1/3)*255);
+
+    g = Math.round(hue2rgb(p,q,h)*255);
+
+    b = Math.round(hue2rgb(p,q,h-1/3)*255);
+
+  }
+
+  return [r,g,b];
+
+}
+
+// gobo pattern
+
+function applyGoboPattern(cx,cy,radius,pattern){
+
+  ctx.save(); ctx.translate(cx,cy); ctx.globalAlpha = 0.15;
+
+  if(pattern==='Stripes'){ ctx.strokeStyle='rgba(0,0,0,0.36)'; ctx.lineWidth=6; for(let i=-radius;i<radius;i+=12){ ctx.beginPath(); ctx.moveTo(i,-radius); ctx.lineTo(i,radius); ctx.stroke(); } }
+
+  else if(pattern==='Grid'){ ctx.strokeStyle='rgba(0,0,0,0.28)'; ctx.lineWidth=3; for(let i=-radius;i<radius;i+=14){ ctx.beginPath(); ctx.moveTo(i,-radius); ctx.lineTo(i,radius); ctx.stroke(); ctx.beginPath(); ctx.moveTo(-radius,i); ctx.lineTo(radius,i); ctx.stroke(); } }
+
+  else if(pattern==='Dots'){ ctx.fillStyle='rgba(0,0,0,0.30)'; for(let y=-radius;y<radius;y+=12) for(let x=-radius;x<radius;x+=12) ctx.fillRect(x,y,3,3); }
+
+  else if(pattern==='Split'){ ctx.fillStyle='rgba(0,0,0,0.24)'; ctx.fillRect(-radius,-radius,radius,radius); }
+
+  else if(pattern==='Star'){ ctx.strokeStyle='rgba(0,0,0,0.28)'; ctx.lineWidth=2; for(let a=0;a<Math.PI*2;a+=Math.PI/5){ ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(Math.cos(a)*radius*0.7, Math.sin(a)*radius*0.7); ctx.stroke(); } }
+
+  else if(pattern==='Spiral'){ ctx.strokeStyle='rgba(0,0,0,0.22)'; ctx.beginPath(); for(let a=0;a<Math.PI*4;a+=0.12){ const rr=a*6; ctx.lineTo(Math.cos(a)*rr, Math.sin(a)*rr);} ctx.stroke(); }
+
+  else if(pattern==='Honeycomb'){ ctx.fillStyle='rgba(0,0,0,0.18)'; for(let rr=0;rr<radius;rr+=14){ for(let a=0;a<Math.PI*2;a+=Math.PI/3){ ctx.beginPath(); ctx.rect(Math.cos(a)*rr, Math.sin(a)*rr, 6,6); ctx.fill(); } } }
+
+  ctx.restore();
+
+}
+
+// fog rendering
+
+function renderFog(op){
+
+  ctx.save();
+
+  for(let p of fog.particles){ ctx.beginPath(); ctx.fillStyle = `rgba(210,220,230,${p.a*op})`; ctx.arc(p.x,p.y,p.r*2,0,Math.PI*2); ctx.fill(); }
+
+  ctx.restore();
+
+}
+
+// main loop
+
+let last = performance.now();
+
+function loop(now){
+
+  const dt = (now - last)/1000; last = now;
+
+  if(state.running) state.time += dt;
+
+  updateFog();
+
+  // clear + vignette
+
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  const g = ctx.createLinearGradient(0,0,0,canvas.height);
+
+  g.addColorStop(0,'#000'); g.addColorStop(1,'#03111a');
+
+  ctx.fillStyle = g; ctx.fillRect(0,0,canvas.width,canvas.height);
+
+  // floor
+
+  ctx.fillStyle = '#041017'; ctx.fillRect(0, canvas.height*0.82, canvas.width, canvas.height*0.18);
+
+  // update heads by mode
+
+  const mode = UI.mode.value;
+
+  for(let i=0;i<state.heads.length;i++){
+
+    const h = state.heads[i];
+
+    if(mode==='pargoy'){ h.pan = Math.sin(state.time*0.9 + i*0.22)* (60*parseFloat(UI.speedH.value)) + i*8; h.tilt = -55 + Math.sin(state.time*1.6 + i*0.28)*(6*parseFloat(UI.speedV.value)); }
+
+    else if(mode==='lr'){ h.pan = Math.sin(state.time*0.6 + i*0.26) * (90 * parseFloat(UI.speedH.value)); h.tilt = -60; }
+
+    else if(mode==='ud'){ h.tilt = -55 + Math.sin(state.time*0.8 + i*0.2)*(40*parseFloat(UI.speedV.value)); }
+
+    else if(mode==='circle'){ h.pan = ((state.time*30 + i*30)%360)-180; h.tilt=-60; }
+
+    else if(mode==='wave'){ h.pan = Math.sin(state.time*0.8 + i*0.35)*70; h.tilt = -50 + Math.cos(state.time*0.9 + i*0.2)*10; }
+
+    else if(mode==='random'){ if(Math.random()<0.006){ h.pan = (Math.random()*360)-180; h.tilt = -40 - Math.random()*40; } }
+
+    else if(mode==='manual'){ /* do nothing */ }
+
+    // sync UI-based values
+
+    h.angle = parseFloat(UI.angle.value);
+
+    h.range = parseFloat(UI.range.value);
+
+    h.intensity = parseFloat(UI.masterFader.value);
+
+    h.white = parseFloat(UI.whiteFader.value);
+
+    h.prismCount = parseInt(UI.prismMode.value) || 0;
+
+    h.gobo = h.gobo || UI.gobo.value;
+
+    // rainbow toggle by using colMode selection 'rgbw' doesn't change rainbow; allow shift+click for rainbow if needed
+
+  }
+
+  // draw back fog
+
+  renderFog(0.06);
+
+  // strobo per-head visibility
+
+  const stroboMode = UI.stroboMode.value;
+
+  const stroboRate = parseFloat(UI.stroboRate.value) || 8;
+
+  state.stroboPhase += dt * stroboRate * 0.6;
+
+  for(let i=0;i<state.heads.length;i++){
+
+    const h = state.heads[i];
+
+    let visible = true;
+
+    if(stroboMode!=='Off'){
+
+      if(stroboMode==='Blink') visible = Math.floor(state.stroboPhase) % 2 === 0;
+
+      else if(stroboMode==='Alternate') visible = (Math.floor(state.stroboPhase + i*0.5) % 2) === 0;
+
+      else if(stroboMode==='Flow') visible = (Math.sin(state.stroboPhase*0.8 + i*0.6) > 0);
+
+      else if(stroboMode==='Random') visible = Math.random() > 0.5;
+
+    }
+
+    // temporarily set intensity to zero if not visible
+
+    const savedInt = h.intensity;
+
+    if(!visible) h.intensity = 0;
+
+    drawBeam(h, state.time*100);
+
+    h.intensity = savedInt;
+
+  }
+
+  // draw front fog
+
+  renderFog(0.02);
+
+  // UI heads
+
+  drawHeadsUI();
+
+  // record frames if recording
+
+  if(state.recording){
+
+    if(!state._lastRec || now - state._lastRec > 100){ state.recordedFrames.push(JSON.stringify(state.heads.map(h=>({pan:h.pan, tilt:h.tilt, color:h.color, white:h.white})))) ; state._lastRec = now;}
+
+  }
+
+  requestAnimationFrame(loop);
+
+}
+
+requestAnimationFrame(loop);
+
+// helper to convert mixRGBW returned prefix to rgba string earlier
+
+function mixRGBWPrefix(hex,w,master){
+
+  const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+
+  const rw = Math.round(r*(1-w) + 255*w);
+
+  const gw = Math.round(g*(1-w) + 255*w);
+
+  const bw = Math.round(b*(1-w) + 255*w);
+
+  return `rgba(${Math.round(rw*master)},${Math.round(gw*master)},${Math.round(bw*master)},`;
+
+}
+
+// but used earlier as mixRGBW; define same name for compatibility
+
+function mixRGBW(hex,w,master){ return mixRGBWPrefix(hex,w,master); }
+
+// small utility wrappers used earlier (already present) - kept for safety
+
+// spawnFog already defined earlier
+
+// End of script
+
+</script>
+
+</body>
+
+</html>
+<script>
+/* --- Start Custom JavaScript --- */
+/* Welcome! Start your JavaScript here */
+/* This will be included in <script> tags when you save the project */
+
+function showAlert() {
+  alert("Button clicked from JavaScript!");
+}
+
+// You can add more JS here, e.g., for interactivity
+document.addEventListener('DOMContentLoaded', () => {
+  const myBox = document.getElementById('my-box');
+  if (myBox) {
+    myBox.addEventListener('click', () => {
+      console.log('Box clicked!');
+      myBox.style.backgroundColor = '#666';
+    });
+  }
+});
+
+/* --- End Custom JavaScript --- */
+    </script>
+</body>
+</html>
